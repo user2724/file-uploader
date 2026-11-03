@@ -1,0 +1,21 @@
+<html>
+
+<body>
+
+
+
+<form action="/sign-up" method="POST">
+<label for="name">Name</label>
+<input type="text" name="name" id="name" value="<%= name || '' %>">
+
+<label for="email">Email</label>
+<input type="email" name="email" id="email" value="<%= email || '' %>">
+
+<label for="password">Password</label>
+<input type="password" name="password" id="password" required>
+
+<button type="submit">Submit</button>
+</form>
+
+</body>
+</html>

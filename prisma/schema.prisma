@@ -1,0 +1,35 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id    Int @id @default(autoincrement())
+  email String @unique
+  name  String?
+  password String?
+  files File[]
+
+  
+}
+
+model File {
+  id   Int @id @default(autoincrement())
+  filename String
+  content String?
+  type FileType 
+  author User @relation(fields: [authorId], references: [id])
+  authorId Int
+}
+
+enum FileType {
+  DOCUMENT
+  SPREADSHEET
+  SLIDE
+}
