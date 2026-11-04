@@ -5,20 +5,40 @@
 
 <h1>Welcome to Google Drive!</h1>
 
+<% if (locals.user) { %>
+
+ <h2>Welcome, <%= user.name %></h2>   
+    <button>Add new file</button>
+
+    <h2>My Files</h2>
+
+
+
+
+<% } else { %>
+
 <h1>Please Log In</h1>
 
-<form action="/log-in" method="POST">
+<form action="/" method="POST">
 
     <label for="email">Email</label>
     <input name="email" type="email" id="email">
     
-    <label for="passord">Password</label>
+    <label for="password">Password</label>
     <input name="password" type="password" id="password">
+
+    <button type="submit">Submit</button>
+
+   <% if (errorMessage && errorMessage.length > 0) { %>
+        <p><%= errorMessage[0] %></p>
+    <% } %>
+
 </form>
 
 <h3>Don't have an account?</h3>
 <a href="/sign-up">Sign Up</a>
 
+<% } %>
 
 
 </body>
