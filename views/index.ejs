@@ -8,12 +8,22 @@
 <% if (locals.user) { %>
 
  <h2>Welcome, <%= user.name %></h2>   
-    <button>Add new file</button>
+ <form action="/add-file" method="POST">
+    <h4>Add a new file:</h4>
+
+    <label for="filename">
+        <input name="filename" type="text" id="filename">
+    </label>
+
+    <button type="submit">Add new file</button>
+    </form>
 
     <h2>My Files</h2>
 
 
-
+<form action="/log-out" method="POST">
+    <button type="submit">Log Out</button>
+</form>
 
 <% } else { %>
 

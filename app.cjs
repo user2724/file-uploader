@@ -71,6 +71,29 @@ async function start() {
             res.status(500).send("ERROR LOADING DATA")
         }
     })
+// File creation draft: (Not final code)
+app.post("/add-file", async (req, res) => {
+    const { filename } = req.body
+    const user = await prisma.user.update({
+        where: { id: req.user.id },
+        data: { 
+            files: {
+            create: {
+                filename: filename,
+                content: null,
+                type: 'DOCUMENT' // At least for now
+            }
+        } 
+    },
+        include: {
+            files: true
+        }
+       
+    })
+    console.log("Updated User: ", user)
+    res.redirect("/")
+})
+
 
     app.get("/sign-up", (req, res) => {
         res.render("sign-up.ejs", {error: null, email: null, name: null})
@@ -162,6 +185,15 @@ passport.deserializeUser(async (id, done) => {
 
 
     )
+
+ app.post("/log-out", (req, res, next) => {
+    req.logout((err) => {
+        if (err) {
+            return next(err)
+        }
+    })
+    res.redirect("/")
+})   
 
     const PORT = process.env.PORT || 5000
 
