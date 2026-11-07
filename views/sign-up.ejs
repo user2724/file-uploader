@@ -2,20 +2,23 @@
 
 <body>
 
-
+<h1>Sign Up</h1>
 
 <form action="/sign-up" method="POST">
 <label for="name">Name</label>
-<input type="text" name="name" id="name" value="<%= name || '' %>">
+<input type="text" name="name" id="name" required>
 
 <label for="email">Email</label>
-<input type="email" name="email" id="email" value="<%= email || '' %>">
+<input type="email" name="email" id="email"  required>
 
 <label for="password">Password</label>
 <input type="password" name="password" id="password" required>
 
+<label for="confirmPassword">Confirm Password</label>
+    <input name="confirmPassword" type="password" id="confirmPassword" required>
+
 <button type="submit">Submit</button>
 </form>
-
+<%- include("../partials/errors.ejs") %>
 </body>
 </html>

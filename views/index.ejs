@@ -7,7 +7,9 @@
 
 <% if (locals.user) { %>
 
- <h2>Welcome, <%= user.name %></h2>   
+ <h2>Welcome, <%= user.name %></h2> 
+ 
+
  <form action="/add-file" method="POST">
     <h4>Add a new file:</h4>
 
@@ -18,8 +20,16 @@
     <button type="submit">Add new file</button>
     </form>
 
+<% if (files.length > 0) { %>
     <h2>My Files</h2>
 
+<div class="all-files">
+   <% files.forEach(file => { %>
+        <h4><%= file.fileUrl %></h4>
+  <%  }) %>
+</div>
+
+<% } %>
 
 <form action="/log-out" method="POST">
     <button type="submit">Log Out</button>
@@ -32,10 +42,12 @@
 <form action="/" method="POST">
 
     <label for="email">Email</label>
-    <input name="email" type="email" id="email">
+    <input name="email" type="email" id="email" required>
     
     <label for="password">Password</label>
-    <input name="password" type="password" id="password">
+    <input name="password" type="password" id="password" required>
+
+    
 
     <button type="submit">Submit</button>
 

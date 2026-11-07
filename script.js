@@ -2,7 +2,7 @@ import { prisma } from './lib/prisma.js'
 
 
 async function main() {
-    let user = await prisma.user.upsert({
+    /*let user = await prisma.user.upsert({
         where: {
             email: 'alice@prisma.io',
         },
@@ -27,7 +27,9 @@ async function main() {
     
 
 
-    console.log("User: ", user)
+    console.log("User: ", user)*/
+
+
 
     const allUsers = await prisma.user.findMany({
         include: {

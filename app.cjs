@@ -14,7 +14,7 @@ app.set("views", path.join(__dirname, "views"))
 
 require('dotenv/config');
 
-
+const { body, validationResult } = require("express-validator")
 
 const expressSession = require('express-session');
 app.use(express.urlencoded({ extended: false }));
@@ -65,23 +65,35 @@ async function start() {
     app.get("/", async (req, res) => {
         try {
             const users = await prisma.user.findMany();
-            res.render("index.ejs", { users, errorMessage: req.flash('error') })
+           
+            let files = []
+
+            if ( req.user) {
+                 files = await prisma.file.findMany({
+                where: { authorId: req.user.id}
+               
+               
+            })
+        
+            console.log(req.user)
+        }
+            res.render("index.ejs", { files, errorMessage: req.flash('error') })
+            //const files = req.user.files
+            
         } catch (error) {
             console.error(error)
             res.status(500).send("ERROR LOADING DATA")
         }
     })
-// File creation draft: (Not final code)
+
 app.post("/add-file", async (req, res) => {
-    const { filename } = req.body
+    const { fileUrl } = req.body
     const user = await prisma.user.update({
         where: { id: req.user.id },
         data: { 
             files: {
             create: {
-                filename: filename,
-                content: null,
-                type: 'DOCUMENT' // At least for now
+                fileUrl: fileUrl // At least for now
             }
         } 
     },
@@ -99,8 +111,40 @@ app.post("/add-file", async (req, res) => {
         res.render("sign-up.ejs", {error: null, email: null, name: null})
     })
 
-    app.post("/sign-up", async (req, res) => {
-        const { email, name, password, files } = req.body
+const nameErr = "must be between 1 and 25 characters."
+const alphaErr = "must contain only letters."
+const emailErr = "Please provide a valid email address."
+const passwordErr = "must be at least 6 characters."
+
+
+    app.post("/sign-up", [
+
+body("name").trim()
+.isLength({ min: 1, max: 25}).withMessage(`Name ${nameErr}`),
+body("email")
+.isEmail().withMessage(`${emailErr}`),
+body("password")
+.isLength({min: 6}).withMessage(`Password ${passwordErr}`),
+body("confirmPassword")
+.custom((value, { req }) => {
+        if ( value !== req.body.password) {
+            throw new Error("Passwords do not match.")
+        }
+        return true 
+    })
+
+    ], async (req, res) => {
+
+const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(400).render("sign-up", {
+            errors: errors.array(),
+            formData: req.body,
+            
+        })
+    }
+    
+    const { email, name, password, files } = req.body
         const hashedPassword = await bcrypt.hash(password, 10)
 
         try {
@@ -166,7 +210,10 @@ return done(null, user)
 passport.deserializeUser(async (id, done) => {
     try {
        const user = await prisma.user.findUnique({
-        where: {id: id}
+        where: {id: id},
+        include: {
+            files: true
+        }
        })
 
         done(null, user)

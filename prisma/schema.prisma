@@ -21,18 +21,12 @@ model User {
 
 model File {
   id   Int @id @default(autoincrement())
-  filename String
-  content String?
-  type FileType 
+  fileUrl String
   author User @relation(fields: [authorId], references: [id])
   authorId Int
 }
 
-enum FileType {
-  DOCUMENT
-  SPREADSHEET
-  SLIDE
-}
+
 
 model Session {
   id        String   @id
