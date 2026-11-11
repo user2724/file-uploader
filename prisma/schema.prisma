@@ -15,18 +15,30 @@ model User {
   name  String?
   password String
   files File[]
+  folders Folder[]
 
   
+}
+
+model Folder {
+  id Int @id @default(autoincrement())
+  folderName String
+  author User @relation(fields: [authorId], references: [id])
+  authorId Int
+  files File[]
+
 }
 
 model File {
   id   Int @id @default(autoincrement())
   fileUrl String
+  filename String?
+  size String?
   author User @relation(fields: [authorId], references: [id])
+  folder Folder @relation(fields: [folderId], references: [id])
   authorId Int
+  folderId Int
 }
-
-
 
 model Session {
   id        String   @id

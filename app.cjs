@@ -6,7 +6,9 @@ const bcrypt = require("bcryptjs")
 const passport = require("passport")
 const LocalStrategy = require('passport-local').Strategy
 const flash = require('connect-flash')
-
+const cloudinary = require('cloudinary').v2;
+const multer = require("multer")
+const upload = multer({ dest: 'uploads/'})
 
 app.set("view engine", "ejs")
 app.set("views", path.join(__dirname, "views"))
@@ -67,17 +69,26 @@ async function start() {
             const users = await prisma.user.findMany();
            
             let files = []
+            let folders = []
 
             if ( req.user) {
                  files = await prisma.file.findMany({
-                where: { authorId: req.user.id}
-               
-               
+                where: { authorId: req.user.id}            
+                 })
+
+                folders = await prisma.folder.findMany({
+                    where: { authorId: req.user.id}
             })
+
+            /*if (req.user) {
+                 folders = await prisma.folder.findMany({
+                    where: { authorId: req.user.id}
+                })     
+            }*/
         
             console.log(req.user)
         }
-            res.render("index.ejs", { files, errorMessage: req.flash('error') })
+            res.render("index.ejs", { files, folders, errorMessage: req.flash('error') })
             //const files = req.user.files
             
         } catch (error) {
@@ -85,6 +96,11 @@ async function start() {
             res.status(500).send("ERROR LOADING DATA")
         }
     })
+const uploadMiddleware = upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'gallery', maxCount: 8 }])
+app.post("/upload-file", upload.single('filename'), async (req, res, next) => {
+console.log(req.file.originalname, req.file.size)
+res.redirect("/")
+})
 
 app.post("/add-file", async (req, res) => {
     const { fileUrl } = req.body
@@ -93,19 +109,48 @@ app.post("/add-file", async (req, res) => {
         data: { 
             files: {
             create: {
-                fileUrl: fileUrl // At least for now
+                fileUrl: fileUrl,
+                filename: fileUrl,
+                size: null,
+                folder: "main"
+
+            },
+            include: {
+                files: true,
+                folders: true
             }
         } 
-    },
-        include: {
-            files: true
-        }
-       
+    }
     })
     console.log("Updated User: ", user)
     res.redirect("/")
 })
 
+
+app.post("/add-folder", async (req, res) => {
+    const { folderName, files } = req.body
+
+    const user = await prisma.user.update({
+        where: {id: req.user.id},
+        data: {
+folders: {
+    create: {
+        folderName: folderName,
+        files: files
+    },
+}
+        },
+        include: {
+            files: true,
+            folders: true
+        },
+         
+
+    })
+
+    console.log("Updated user: ", user)
+    res.redirect("/")
+})
 
     app.get("/sign-up", (req, res) => {
         res.render("sign-up.ejs", {error: null, email: null, name: null})
@@ -144,7 +189,7 @@ const errors = validationResult(req)
         })
     }
     
-    const { email, name, password, files } = req.body
+    const { email, name, password, files, folders } = req.body
         const hashedPassword = await bcrypt.hash(password, 10)
 
         try {
@@ -153,10 +198,12 @@ const errors = validationResult(req)
                     email: email,
                     name: name,
                     password: hashedPassword,
-                    files: files
+                    files: files,
+                    folders: folders
                 },
                 include: {
-                    files: true
+                    files: true,
+                    folders: true
                 }
             })
 

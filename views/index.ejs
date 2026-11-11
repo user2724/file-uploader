@@ -10,14 +10,13 @@
  <h2>Welcome, <%= user.name %></h2> 
  
 
- <form action="/add-file" method="POST">
+ <form action="/upload-file" method="POST" enctype="multipart/form-data">
     <h4>Add a new file:</h4>
 
-    <label for="filename">
-        <input name="filename" type="text" id="filename">
-    </label>
+    <label for="file-upload">Choose a file:</label>
+     <input name="filename" type="file" id="file-upload">
 
-    <button type="submit">Add new file</button>
+    <button type="submit">Upload</button>
     </form>
 
 <% if (files.length > 0) { %>
@@ -25,11 +24,34 @@
 
 <div class="all-files">
    <% files.forEach(file => { %>
-        <h4><%= file.fileUrl %></h4>
+        <h4><%= file.filename %></h4>
   <%  }) %>
 </div>
 
 <% } %>
+
+<form action="/add-folder" method="POST">
+<h4>Add folder (replace with button later) </h4>
+<label for="folderName">Folder Name</label>
+<input name="folderName" id="folderName" type="text">
+
+<button type="submit">Add Folder</button>
+
+</form>
+
+
+
+<div class="folders-list">
+    <% if (folders.length > 0) { %> 
+        <h3>Folders:</h3>
+       <% folders.forEach(folder => { %>
+            <!--<form action="/access-form/<%= folder.folderName %>" method="GET">
+                <button type="submit"><%= folder.folderName %></button>
+            </form>-->
+            <h4><%= folder.folderName %></h4>
+      <%  }) %>
+  <%  } %>
+</div>
 
 <form action="/log-out" method="POST">
     <button type="submit">Log Out</button>

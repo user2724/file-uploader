@@ -34,7 +34,7 @@ async function main() {
     const allUsers = await prisma.user.findMany({
         include: {
             files: true,
-        },
+            folders: true        },
     })
     console.log("All Users: ", JSON.stringify(allUsers, null, 2))
 }
