@@ -36,9 +36,9 @@ model File {
   filename String?
   size String?
   author User @relation(fields: [authorId], references: [id])
-  folder Folder @relation(fields: [folderId], references: [id])
+  folder Folder? @relation(fields: [folderId], references: [id]) 
   authorId Int
-  folderId Int
+  folderId Int?
 }
 
 model Session {

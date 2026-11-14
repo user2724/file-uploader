@@ -2,19 +2,37 @@ const express = require("express")
 const path = require("node:path")
 const app = express()
 const bcrypt = require("bcryptjs")
+require('dotenv').config({ override: true })
 //const session = require("express-session")
 const passport = require("passport")
 const LocalStrategy = require('passport-local').Strategy
 const flash = require('connect-flash')
-const cloudinary = require('cloudinary').v2;
 const multer = require("multer")
-const upload = multer({ dest: 'uploads/'})
+const upload = multer({ /*dest: 'uploads/'*/
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024}
+})
+
+const { createClient } = require("@supabase/supabase-js")
+
+const supabaseUrl = process.env.SUPABASE_URL
+console.log("Supabase host:", new URL(supabaseUrl).hostname)
+const supabaseApiKey = process.env.SUPABASE_API_KEY
+
+if (!supabaseUrl || !/^https?:\/\//i.test(supabaseUrl)) {
+    throw new Error("SUPABASE_URL must be the full project URL (for example, https://<project-ref>.supabase.co), not an API key.")
+}
+if (!supabaseApiKey) {
+    throw new Error("SUPABASE_API_KEY is required.")
+}
+
+const supabase = createClient(supabaseUrl, supabaseApiKey)
 
 app.set("view engine", "ejs")
 app.set("views", path.join(__dirname, "views"))
 
 
-require('dotenv/config');
+
 
 const { body, validationResult } = require("express-validator")
 
@@ -96,10 +114,56 @@ async function start() {
             res.status(500).send("ERROR LOADING DATA")
         }
     })
-const uploadMiddleware = upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'gallery', maxCount: 8 }])
+//const uploadMiddleware = upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'gallery', maxCount: 8 }])
 app.post("/upload-file", upload.single('filename'), async (req, res, next) => {
-console.log(req.file.originalname, req.file.size)
+//console.log(req.file.originalname, req.file.size)
+try {
+    if (!req.user) { return res.status(400).send("Please log in.")}
+    if (!req.file) { return res.status(401).send("No file uploaded. ")}
+
+    const safeName = req.file.originalname.replace(/[^\w.\-]/g, "_")
+    const filePath = `${req.user.id}/${Date.now()}-${safeName}`
+
+    const { error } = await supabase.storage
+    .from("avatars")
+    .upload(filePath, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: false
+    })
+
+    if (error) throw error
+
+    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath)
+
+    await prisma.file.create({
+        data : {
+            fileUrl: data.publicUrl,
+            filename: req.file.originalname,
+            size: String(req.file.size),
+            authorId: req.user.id
+        }
+    })
 res.redirect("/")
+} catch (err) {
+    console.error("Upload failed:", err)
+    if (res.headersSent) {
+        return next(err)
+    }
+    return res.status(500).send("Upload failed. Please check the server logs and Supabase configuration.")
+}
+
+})
+
+app.get("/open-file/:id", async (req, res, next) => {
+
+    const fileId = Number(req.params.id)
+    
+    const file = await prisma.file.findFirst({
+        where: { id: fileId, authorId: req.user.id }
+    })
+
+   
+    return res.redirect(file.fileUrl)
 })
 
 app.post("/add-file", async (req, res) => {

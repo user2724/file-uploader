@@ -25,9 +25,50 @@
 <div class="all-files">
    <% files.forEach(file => { %>
         <h4><%= file.filename %></h4>
+        <form action="/open-file/<%= file.id %>" method="GET">
+            <button type="submit">Open</button>
+        </form>
+        <button id="openModalButton" type="button" file-id="<%= file.id %>">Move</button>
   <%  }) %>
-</div>
 
+
+<dialog id="formModal">
+<button id="closeModalButton" type="button">Close</button>
+    <form action="/move-file" method="POST">
+<label for="move-input">Move to</label>
+<select id="move-input" name="move-input">
+<option value="My Drive">My Drive</option>
+<% if (folders.length > 0) { %>
+   <% folders.forEach(folder => { %>
+        <option value="<%= folder.folderName %>"><%= folder.folderName %></option>
+   <% }) %>
+<% } %>
+    </select>
+<button type="submit">Submit</button>
+    </form>
+</dialog>
+
+<script>
+
+const modal = document.getElementById("formModal")
+const moveBtn = document.getElementById("openModalButton")
+const closeBtn = document.getElementById("closeModalButton")
+
+document.querySelectorAll('[id="openModalButton"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        modal.showModal()
+    })
+})
+moveBtn.addEventListener('click', () => {
+        modal.showModal()
+    })
+
+closeBtn.addEventListener('click', () => {
+    modal.close()
+})
+
+</script>
+</div>
 <% } %>
 
 <form action="/add-folder" method="POST">
